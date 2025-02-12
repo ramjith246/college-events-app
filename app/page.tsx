@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { Box, Typography, Grid, Button, Container, Card, CardContent, CardMedia, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import Image from "next/image";
 
 interface Event {
   id: string;
@@ -70,11 +71,13 @@ const EventsPage = () => {
           <DialogTitle>{selectedEvent.name}</DialogTitle>
           <DialogContent sx={{ p: 0 }}> {/* ✅ Removes padding/margin */}
             <Box sx={{ display: "flex", justifyContent: "center" }}>
-              <img 
-                src={selectedEvent.imageUrl} 
-                alt={selectedEvent.name} 
-                style={{ width: "100%", maxHeight: "300px", objectFit: "cover", borderRadius: "0" }} 
-              />
+            <Image 
+  src={selectedEvent.imageUrl} 
+  alt={selectedEvent.name} 
+  width={500} 
+  height={300} 
+  style={{ width: "100%", borderRadius: "8px", objectFit: "cover" }} 
+/>
             </Box>
             <Box sx={{ p: 2 }}>
               <Typography variant="body1">{selectedEvent.description}</Typography>
