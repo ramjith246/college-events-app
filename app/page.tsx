@@ -71,13 +71,11 @@ const EventsPage = () => {
           <DialogTitle>{selectedEvent.name}</DialogTitle>
           <DialogContent sx={{ p: 0 }}> {/* ✅ Removes padding/margin */}
             <Box sx={{ display: "flex", justifyContent: "center" }}>
-            <Image 
-  src={selectedEvent.imageUrl} 
-  alt={selectedEvent.name} 
-  width={500} 
-  height={300} 
-  style={{ width: "100%", borderRadius: "8px", objectFit: "cover" }} 
-/>
+              <img 
+                src={selectedEvent.imageUrl} 
+                alt={selectedEvent.name} 
+                style={{ width: "100%", maxHeight: "300px", objectFit: "cover", borderRadius: "0" }} 
+              />
             </Box>
             <Box sx={{ p: 2 }}>
               <Typography variant="body1">{selectedEvent.description}</Typography>
