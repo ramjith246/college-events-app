@@ -71,11 +71,15 @@ const EventsPage = () => {
           <DialogTitle>{selectedEvent.name}</DialogTitle>
           <DialogContent sx={{ p: 0 }}> {/* ✅ Removes padding/margin */}
             <Box sx={{ display: "flex", justifyContent: "center" }}>
-              <img 
-                src={selectedEvent.imageUrl} 
-                alt={selectedEvent.name} 
-                style={{ width: "100%", maxHeight: "300px", objectFit: "cover", borderRadius: "0" }} 
-              />
+            <Image 
+  src={selectedEvent.imageUrl} 
+  alt={selectedEvent.name} 
+  width={800}
+  height={600}
+  unoptimized // <-- Add this line to disable Next.js optimization
+  style={{ width: "100%", maxHeight: "300px", objectFit: "cover", borderRadius: "0" }}
+/>
+
             </Box>
             <Box sx={{ p: 2 }}>
               <Typography variant="body1">{selectedEvent.description}</Typography>
