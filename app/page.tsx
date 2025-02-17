@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import { Box, Typography, Grid, Button, Container, Card, CardContent, CardMedia, Dialog, DialogTitle, DialogContent, DialogActions, Drawer, List, ListItem, ListItemText, IconButton, TextField } from '@mui/material';
+import { Box, Typography, Grid, Button, Container, Card, CardContent, CardMedia, Dialog, DialogTitle, DialogContent, DialogActions, Drawer, List, ListItemButton, ListItemText, IconButton, TextField } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
 interface Event {
@@ -52,9 +52,9 @@ const EventsPage = () => {
       </IconButton>
       <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <List>
-          <ListItem button onClick={() => handlePageChange('events')}><ListItemText primary="Events" /></ListItem>
-          <ListItem button onClick={() => handlePageChange('workshops')}><ListItemText primary="External Workshops" /></ListItem>
-          <ListItem button onClick={() => handlePageChange('internships')}><ListItemText primary="External Internships" /></ListItem>
+          <ListItemButton onClick={() => handlePageChange('events')}><ListItemText primary="Events" /></ListItemButton>
+          <ListItemButton onClick={() => handlePageChange('workshops')}><ListItemText primary="External Workshops" /></ListItemButton>
+          <ListItemButton onClick={() => handlePageChange('internships')}><ListItemText primary="External Internships" /></ListItemButton>
         </List>
       </Drawer>
       <Box sx={{ textAlign: 'center', my: 4 }}>
