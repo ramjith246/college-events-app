@@ -1,5 +1,6 @@
 'use client';
 
+import Head from 'next/head';
 import React, { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
@@ -32,68 +33,73 @@ const EventsPage = () => {
   }, []);
 
   return (
-    <Container>
-      <Box sx={{ textAlign: 'center', my: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          College Events
-        </Typography>
-      </Box>
-      <Grid container spacing={3}>
-        {events.map(event => (
-          <Grid item xs={12} sm={6} md={4} key={event.id}>
-            <Card 
-              onClick={() => setSelectedEvent(event)} 
-              sx={{ 
-                cursor: 'pointer', 
-                height: 350,  // ✅ Fixed card height
-                display: 'flex', 
-                flexDirection: 'column' 
-              }}
-            >
-              <CardMedia 
-                component="img" 
-                height="200"  // ✅ Fixed image height
-                image={event.imageUrl} 
-                alt={event.name} 
-                sx={{ objectFit: "cover" }} // ✅ Ensures image doesn't stretch
-              />
-              <CardContent sx={{ flexGrow: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Typography variant="h6" align="center">{event.name}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+    <>
+      <Head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#1976d2" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+      </Head>
+      <Container>
+        <Box sx={{ textAlign: 'center', my: 4 }}>
+          <Typography variant="h4" gutterBottom>
+            College Events
+          </Typography>
+        </Box>
+        <Grid container spacing={3}>
+          {events.map(event => (
+            <Grid item xs={12} sm={6} md={4} key={event.id}>
+              <Card 
+                onClick={() => setSelectedEvent(event)} 
+                sx={{ 
+                  cursor: 'pointer', 
+                  height: 350,
+                  display: 'flex', 
+                  flexDirection: 'column' 
+                }}
+              >
+                <CardMedia 
+                  component="img" 
+                  height="200"
+                  image={event.imageUrl} 
+                  alt={event.name} 
+                  sx={{ objectFit: "cover" }}
+                />
+                <CardContent sx={{ flexGrow: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Typography variant="h6" align="center">{event.name}</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
 
-      {/* Event Details Dialog */}
-      {selectedEvent && (
-        <Dialog open={Boolean(selectedEvent)} onClose={() => setSelectedEvent(null)}>
-          <DialogTitle>{selectedEvent.name}</DialogTitle>
-          <DialogContent sx={{ p: 0 }}> {/* ✅ Removes padding/margin */}
-            <Box sx={{ display: "flex", justifyContent: "center" }}>
-            <Image 
-  src={selectedEvent.imageUrl} 
-  alt={selectedEvent.name} 
-  width={800}
-  height={600}
-  unoptimized // <-- Add this line to disable Next.js optimization
-  style={{ width: "100%", maxHeight: "300px", objectFit: "cover", borderRadius: "0" }}
-/>
-
-            </Box>
-            <Box sx={{ p: 2 }}>
-              <Typography variant="body1">{selectedEvent.description}</Typography>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setSelectedEvent(null)}>Close</Button>
-            <Button variant="contained" color="primary" href={selectedEvent.registerLink} target="_blank" rel="noopener noreferrer">
-              Register Now
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
-    </Container>
+        {selectedEvent && (
+          <Dialog open={Boolean(selectedEvent)} onClose={() => setSelectedEvent(null)}>
+            <DialogTitle>{selectedEvent.name}</DialogTitle>
+            <DialogContent sx={{ p: 0 }}>
+              <Box sx={{ display: "flex", justifyContent: "center" }}>
+                <Image 
+                  src={selectedEvent.imageUrl} 
+                  alt={selectedEvent.name} 
+                  width={800}
+                  height={600}
+                  unoptimized
+                  style={{ width: "100%", maxHeight: "300px", objectFit: "cover", borderRadius: "0" }}
+                />
+              </Box>
+              <Box sx={{ p: 2 }}>
+                <Typography variant="body1">{selectedEvent.description}</Typography>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setSelectedEvent(null)}>Close</Button>
+              <Button variant="contained" color="primary" href={selectedEvent.registerLink} target="_blank" rel="noopener noreferrer">
+                Register Now
+              </Button>
+            </DialogActions>
+          </Dialog>
+        )}
+      </Container>
+    </>
   );
 };
 
