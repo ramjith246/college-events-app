@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { db1, db2 } from '@/lib/firebase'; // Import both database instances
+import { db1, db2 } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { Box, Typography, Grid, Button, Container, Card, CardContent, CardMedia, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import Image from "next/image";
@@ -13,6 +13,8 @@ interface Event {
   imageUrl: string;
   description: string;
   registerLink: string;
+  date: string;
+  status?: string;
 }
 
 const EventsPage = () => {
@@ -21,39 +23,38 @@ const EventsPage = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
-  try {
-    const [snapshot1, snapshot2] = await Promise.all([
-      getDocs(collection(db1, 'events')),
-      getDocs(collection(db2, 'events'))
-    ]);
+      try {
+        const [snapshot1, snapshot2] = await Promise.all([
+          getDocs(collection(db1, 'events')),
+          getDocs(collection(db2, 'events'))
+        ]);
 
-    // Debugging: Log fetched data
-    console.log("Events from DB1:", snapshot1.docs.map(doc => doc.data()));
-    console.log("Events from DB2:", snapshot2.docs.map(doc => doc.data()));
+        const events1 = snapshot1.docs.map(doc => ({
+          id: doc.id,
+          name: doc.data().name,
+          imageUrl: doc.data().imageUrl,
+          description: doc.data().description || "No description available",
+          registerLink: doc.data().registerLink || "#",
+          date: doc.data().date || "Date not available",
+          status: doc.data().status || "active"
+        }));
 
-    const events1 = snapshot1.docs.map(doc => ({
-      id: doc.id,
-      name: doc.data().name,
-      imageUrl: doc.data().imageUrl,
-      description: doc.data().description || "No description available",
-      registerLink: doc.data().registerLink || "#"
-    }));
+        const events2 = snapshot2.docs.map(doc => ({
+          id: doc.id,
+          name: doc.data().name,
+          imageUrl: doc.data().imageUrl,
+          description: doc.data().description || doc.data().desc || "No description available",
+          registerLink: doc.data().registerLink || "#",
+          date: doc.data().date || "Date not available",
+          status: doc.data().status || "active"
+        }));
 
-    const events2 = snapshot2.docs.map(doc => ({
-      id: doc.id,
-      name: doc.data().name,
-      imageUrl: doc.data().imageUrl,
-      description: doc.data().description || doc.data().desc || "No description available",
-      registerLink: doc.data().registerLink || "#"
-    }));
+        setEvents([...events1, ...events2]);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
+    };
 
-    setEvents([...events1, ...events2]);
-  } catch (error) {
-    console.error('Error fetching events:', error);
-  }
-};
-
-    
     fetchEvents();
   }, []);
 
@@ -67,8 +68,11 @@ const EventsPage = () => {
       </Head>
 
       <Box sx={{ textAlign: 'center', my: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          College Events
+        <Typography 
+          variant="h1" 
+          sx={{ fontFamily: '"Old Standard TT", serif' }}
+        >
+          Events GEC
         </Typography>
       </Box>
 
@@ -77,7 +81,15 @@ const EventsPage = () => {
           <Grid item xs={12} sm={6} md={4} key={event.id}>
             <Card 
               onClick={() => setSelectedEvent(event)} 
-              sx={{ cursor: 'pointer', height: 350, display: 'flex', flexDirection: 'column' }}
+              sx={{ 
+                cursor: 'pointer', 
+                height: 350, 
+                display: 'flex', 
+                flexDirection: 'column',
+                filter: event.status === "canceled" ? "grayscale(100%)" : "none", 
+                opacity: event.status === "canceled" ? 0.6 : 1,
+                position: 'relative' // Needed for overlay
+              }}
             >
               <CardMedia 
                 component="img" 
@@ -86,9 +98,39 @@ const EventsPage = () => {
                 alt={event.name} 
                 sx={{ objectFit: "cover" }}
               />
-              <CardContent sx={{ flexGrow: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <Typography variant="h6" align="center">{event.name}</Typography>
               </CardContent>
+
+              {/* CANCELED Overlay */}
+              {event.status === "canceled" && (
+                <Box 
+                  sx={{ 
+                    position: 'absolute', 
+                    top: 0, 
+                    left: 0, 
+                    width: '100%', 
+                    height: '100%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    bgcolor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black background
+                  }}
+                >
+                  <Typography 
+                    variant="h4" 
+                    sx={{ 
+                      color: 'white', 
+                      fontSize:'3.5rem',
+                      fontWeight: 'bold', 
+                      textTransform: 'uppercase',
+                      opacity: 0.7, // Reduced opacity
+                    }}
+                  >
+                    Canceled
+                  </Typography>
+                </Box>
+              )}
             </Card>
           </Grid>
         ))}
@@ -97,8 +139,10 @@ const EventsPage = () => {
       {/* Event Details Dialog */}
       {selectedEvent && (
         <Dialog open={Boolean(selectedEvent)} onClose={() => setSelectedEvent(null)}>
-          <DialogTitle>{selectedEvent.name}</DialogTitle>
-          <DialogContent sx={{ p: 0 }}>
+          <DialogTitle sx={{ bgcolor: "black", color: "white" }}>
+            {selectedEvent.name}
+          </DialogTitle>
+          <DialogContent sx={{ bgcolor: "black", color: "white", p: 0 }}>
             <Box sx={{ display: "flex", justifyContent: "center" }}>
               <Image 
                 src={selectedEvent.imageUrl} 
@@ -110,14 +154,30 @@ const EventsPage = () => {
               />
             </Box>
             <Box sx={{ p: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ color: "white" }}>
+                Date: {selectedEvent.date}
+              </Typography>
               <Typography variant="body1">{selectedEvent.description}</Typography>
+              {selectedEvent.status === "canceled" && (
+                <Typography variant="h5" sx={{ color: "red", fontWeight: "bold", mt: 2 }}>
+                  This Event Has Been CANCELED
+                </Typography>
+              )}
             </Box>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setSelectedEvent(null)}>Close</Button>
-            <Button variant="contained" color="primary" href={selectedEvent.registerLink} target="_blank" rel="noopener noreferrer">
-              Register Now
-            </Button>
+          <DialogActions sx={{ bgcolor: "black" }}>
+            <Button onClick={() => setSelectedEvent(null)} sx={{ color: "white" }}>Close</Button>
+            {selectedEvent.status !== "canceled" && (
+              <Button 
+                variant="contained" 
+                color="primary" 
+                href={selectedEvent.registerLink.startsWith('http') ? selectedEvent.registerLink : `https://${selectedEvent.registerLink}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                Register Now
+              </Button>
+            )}
           </DialogActions>
         </Dialog>
       )}
