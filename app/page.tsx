@@ -97,13 +97,13 @@ const EventsPage = () => {
           onKeyDown={toggleDrawer(false)}
         >
           <List>
-            <ListItem button component="a" href="/">
+            <ListItem  component="a" href="/">
                           <ListItemText primary="Events" />
                         </ListItem>
-                        <ListItem button component="a" href="/internships">
+                        <ListItem  component="a" href="/internships">
                           <ListItemText primary="Internships" />
                         </ListItem>
-                        <ListItem button component="a" href="/FestsPage">
+                        <ListItem  component="a" href="/FestsPage">
                           <ListItemText primary="Fests" />
                         </ListItem>
           </List>
