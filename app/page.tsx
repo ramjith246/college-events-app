@@ -3,10 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { db1, db2 } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import { Box, Typography, Grid, Button, Container, Card, CardMedia, Dialog, DialogTitle, DialogContent, DialogActions, Drawer, List, ListItem, ListItemText, IconButton } from '@mui/material';
+import { Box, Typography, Grid, Button, Container, Card, CardContent, CardMedia, Dialog, DialogTitle, DialogContent, DialogActions, Drawer, List, ListItem, ListItemText, IconButton, TextField, InputAdornment } from '@mui/material';
 import Image from "next/image";
 import Head from 'next/head';
-import MenuIcon from '@mui/icons-material/Menu'; // Import the hamburger menu icon
+import MenuIcon from '@mui/icons-material/Menu';
+import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface Event {
   id: string;
@@ -15,13 +17,17 @@ interface Event {
   description: string;
   registerLink: string;
   date: string;
+  club: string;
   status?: string;
 }
 
 const EventsPage = () => {
   const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false); // State to manage drawer open/close
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -38,6 +44,7 @@ const EventsPage = () => {
           description: doc.data().description || "No description available",
           registerLink: doc.data().registerLink || "#",
           date: doc.data().date || "Date not available",
+          club: doc.data().club || "General",
           status: doc.data().status || "active"
         }));
 
@@ -48,10 +55,14 @@ const EventsPage = () => {
           description: doc.data().description || doc.data().desc || "No description available",
           registerLink: doc.data().registerLink || "#",
           date: doc.data().date || "Date not available",
+          club: doc.data().club || "General",
           status: doc.data().status || "active"
         }));
 
-        setEvents([...events1, ...events2]);
+        const allEvents = [...events1, ...events2];
+
+        setEvents(allEvents);
+        setFilteredEvents(allEvents);
       } catch (error) {
         console.error('Error fetching events:', error);
       }
@@ -60,9 +71,25 @@ const EventsPage = () => {
     fetchEvents();
   }, []);
 
-  const toggleDrawer = (open: boolean) => () => {
-    setDrawerOpen(open);
-  };
+  // Function to filter events based on search query
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredEvents(events);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = events.filter(event => {
+        const eventName = event.name?.toLowerCase() || "";
+        const eventClub = event.club?.toLowerCase() || "";
+        return eventName.includes(query) || eventClub.includes(query);
+      });
+      setFilteredEvents(filtered);
+
+      // Debugging logs
+      console.log("Search Query:", query);
+      console.log("Filtered Events:", filtered);
+      console.log("All Events:", events);
+    }
+  }, [searchQuery, events]);
 
   return (
     <Container>
@@ -78,98 +105,84 @@ const EventsPage = () => {
         edge="start"
         color="inherit"
         aria-label="menu"
-        onClick={toggleDrawer(true)}
+        onClick={() => setDrawerOpen(true)}
         sx={{ position: 'absolute', top: 16, left: 16, zIndex: 1000 }}
       >
-        <MenuIcon sx={{ color: 'white', fontSize: '2rem' }} /> {/* Three white lines */}
+        <MenuIcon sx={{ color: 'white', fontSize: '2rem' }} />
       </IconButton>
 
-      {/* Drawer (Sliding Panel) */}
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={toggleDrawer(false)}
+      {/* Search Button (Magnifying Glass) */}
+      <IconButton
+        color="inherit"
+        aria-label="search"
+        onClick={() => setSearchOpen(!searchOpen)}
+        sx={{ position: 'absolute', top: 16, right: 16, zIndex: 1000 }}
       >
-        <Box
-          sx={{ width: 250 }}
-          role="presentation"
-          onClick={toggleDrawer(false)}
-          onKeyDown={toggleDrawer(false)}
-        >
+        {searchOpen ? <CloseIcon sx={{ color: 'white', fontSize: '2rem' }} /> : <SearchIcon sx={{ color: 'white', fontSize: '2rem' }} />}
+      </IconButton>
+
+      {/* Search Bar */}
+      {searchOpen && (
+        <Box sx={{ width: '100%', mt: 8, mb: 2 }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Search events by name or club..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              sx: { backgroundColor: "white", color: "black" }, // Background white, text black
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "black" }} /> {/* Ensure icon is visible */}
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              input: { color: "black" }, // Make sure input text is black
+            }}
+          />
+        </Box>
+      )}
+
+      {/* Drawer (Navigation Menu) */}
+      <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <Box sx={{ width: 250 }} role="presentation" onClick={() => setDrawerOpen(false)} onKeyDown={() => setDrawerOpen(false)}>
           <List>
-            <ListItem  component="a" href="/">
-                          <ListItemText primary="Events" />
-                        </ListItem>
-                        <ListItem  component="a" href="/internships">
-                          <ListItemText primary="Internships" />
-                        </ListItem>
-                        <ListItem  component="a" href="/FestsPage">
-                          <ListItemText primary="Fests" />
-                        </ListItem>
+            <ListItem component="a" href="/">
+              <ListItemText primary="Events" />
+            </ListItem>
+            <ListItem component="a" href="/internships">
+              <ListItemText primary="Internships" />
+            </ListItem>
+            <ListItem component="a" href="/FestsPage">
+              <ListItemText primary="Fests" />
+            </ListItem>
           </List>
         </Box>
       </Drawer>
 
       <Box sx={{ textAlign: 'center', my: 4 }}>
-        <Typography 
-          variant="h4" 
-          sx={{ fontFamily: '"Old Standard TT", serif' }}
-        >
-          Events GEC
-        </Typography>
+        <Typography variant="h4" sx={{ fontFamily: '"Old Standard TT", serif' }}>Events GEC</Typography>
       </Box>
 
       <Grid container spacing={3}>
-        {events.map(event => (
+        {filteredEvents.map(event => (
           <Grid item xs={12} sm={6} md={4} key={event.id}>
             <Card 
               onClick={() => setSelectedEvent(event)} 
-              sx={{ 
-                cursor: 'pointer', 
-                height: 350, 
-                display: 'flex', 
-                flexDirection: 'column',
-                filter: event.status === "canceled" ? "grayscale(100%)" : "none", 
-                opacity: event.status === "canceled" ? 0.6 : 1,
-                position: 'relative' // Needed for overlay
-              }}
+              sx={{ cursor: 'pointer', height: 350, display: 'flex', flexDirection: 'column', position: 'relative' }}
             >
-              <CardMedia 
-                component="img" 
-                height="200"
-                image={event.imageUrl} 
-                alt={event.name} 
-                sx={{ objectFit: "cover" }}
-              />
-             
+              <CardMedia component="img" height="200" image={event.imageUrl} alt={event.name} sx={{ objectFit: "cover" }} />
+              
+              <CardContent>
+                <Typography variant="h6">{event.name}</Typography>
+                <Typography variant="body2" color="textSecondary">Club: {event.club}</Typography>
+              </CardContent>
 
-              {/* CANCELED Overlay */}
               {event.status === "canceled" && (
-                <Box 
-                  sx={{ 
-                    position: 'absolute', 
-                    top: 0, 
-                    left: 0, 
-                    width: '100%', 
-                    height: '100%', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    bgcolor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black background
-                  }}
-                >
-                  <Typography 
-                    variant="h4" 
-                    sx={{ 
-                      color: 'white', 
-                      fontSize:'3.5rem',
-                      fontWeight: 'bold', 
-                      textTransform: 'uppercase',
-                      opacity: 0.7, // Reduced opacity
-                    }}
-                  >
-                    Canceled
-                  </Typography>
+                <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(0, 0, 0, 0.5)' }}>
+                  <Typography variant="h4" sx={{ color: 'white', fontSize:'3.5rem', fontWeight: 'bold', textTransform: 'uppercase', opacity: 0.7 }}>Canceled</Typography>
                 </Box>
               )}
             </Card>
@@ -177,7 +190,8 @@ const EventsPage = () => {
         ))}
       </Grid>
 
-      {/* Event Details Dialog */}
+      {/* Dialog to show event details */}
+      <Dialog open={!!selectedEvent} onClose={() => setSelectedEvent(null)}>
       {selectedEvent && (
         <Dialog open={Boolean(selectedEvent)} onClose={() => setSelectedEvent(null)}>
           <DialogTitle sx={{ bgcolor: "black", color: "white" }}>
@@ -222,6 +236,7 @@ const EventsPage = () => {
           </DialogActions>
         </Dialog>
       )}
+      </Dialog>
     </Container>
   );
 };
