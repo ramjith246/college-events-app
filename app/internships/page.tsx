@@ -8,56 +8,56 @@ import Image from "next/image";
 import Head from 'next/head';
 import MenuIcon from '@mui/icons-material/Menu'; // Import the hamburger menu icon
 
-interface Event {
+interface Internship {
   id: string;
   name: string;
   imageUrl: string;
   description: string;
-  registerLink: string;
+  applyLink: string;
   date: string;
   status?: string;
 }
 
-const EventsPage = () => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+const InternshipsPage = () => {
+  const [internships, setInternships] = useState<Internship[]>([]);
+  const [selectedInternship, setSelectedInternship] = useState<Internship | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false); // State to manage drawer open/close
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchInternships = async () => {
       try {
         const [snapshot1, snapshot2] = await Promise.all([
-          getDocs(collection(db1, 'events')),
-          getDocs(collection(db2, 'events'))
+          getDocs(collection(db1, 'internships')), // Fetch from first database
+          getDocs(collection(db2, 'internships')) // Fetch from second database
         ]);
 
-        const events1 = snapshot1.docs.map(doc => ({
+        const internships1 = snapshot1.docs.map(doc => ({
           id: doc.id,
           name: doc.data().name,
           imageUrl: doc.data().imageUrl,
           description: doc.data().description || "No description available",
-          registerLink: doc.data().registerLink || "#",
+          applyLink: doc.data().applyLink || "#",
           date: doc.data().date || "Date not available",
           status: doc.data().status || "active"
         }));
 
-        const events2 = snapshot2.docs.map(doc => ({
+        const internships2 = snapshot2.docs.map(doc => ({
           id: doc.id,
           name: doc.data().name,
           imageUrl: doc.data().imageUrl,
           description: doc.data().description || doc.data().desc || "No description available",
-          registerLink: doc.data().registerLink || "#",
+          applyLink: doc.data().applyLink || "#",
           date: doc.data().date || "Date not available",
           status: doc.data().status || "active"
         }));
 
-        setEvents([...events1, ...events2]);
+        setInternships([...internships1, ...internships2]);
       } catch (error) {
-        console.error('Error fetching events:', error);
+        console.error('Error fetching internships:', error);
       }
     };
 
-    fetchEvents();
+    fetchInternships();
   }, []);
 
   const toggleDrawer = (open: boolean) => () => {
@@ -112,39 +112,38 @@ const EventsPage = () => {
 
       <Box sx={{ textAlign: 'center', my: 4 }}>
         <Typography 
-          variant="h4" 
+          variant="h3" 
           sx={{ fontFamily: '"Old Standard TT", serif' }}
         >
-          Events GEC
+          Internships GEC
         </Typography>
       </Box>
 
       <Grid container spacing={3}>
-        {events.map(event => (
-          <Grid item xs={12} sm={6} md={4} key={event.id}>
+        {internships.map(internship => (
+          <Grid item xs={12} sm={6} md={4} key={internship.id}>
             <Card 
-              onClick={() => setSelectedEvent(event)} 
+              onClick={() => setSelectedInternship(internship)} 
               sx={{ 
                 cursor: 'pointer', 
                 height: 350, 
                 display: 'flex', 
                 flexDirection: 'column',
-                filter: event.status === "canceled" ? "grayscale(100%)" : "none", 
-                opacity: event.status === "canceled" ? 0.6 : 1,
+                filter: internship.status === "canceled" ? "grayscale(100%)" : "none", 
+                opacity: internship.status === "canceled" ? 0.6 : 1,
                 position: 'relative' // Needed for overlay
               }}
             >
               <CardMedia 
                 component="img" 
                 height="200"
-                image={event.imageUrl} 
-                alt={event.name} 
+                image={internship.imageUrl} 
+                alt={internship.name} 
                 sx={{ objectFit: "cover" }}
               />
-             
 
               {/* CANCELED Overlay */}
-              {event.status === "canceled" && (
+              {internship.status === "canceled" && (
                 <Box 
                   sx={{ 
                     position: 'absolute', 
@@ -177,17 +176,17 @@ const EventsPage = () => {
         ))}
       </Grid>
 
-      {/* Event Details Dialog */}
-      {selectedEvent && (
-        <Dialog open={Boolean(selectedEvent)} onClose={() => setSelectedEvent(null)}>
+      {/* Internship Details Dialog */}
+      {selectedInternship && (
+        <Dialog open={Boolean(selectedInternship)} onClose={() => setSelectedInternship(null)}>
           <DialogTitle sx={{ bgcolor: "black", color: "white" }}>
-            {selectedEvent.name}
+            {selectedInternship.name}
           </DialogTitle>
           <DialogContent sx={{ bgcolor: "black", color: "white", p: 0 }}>
             <Box sx={{ display: "flex", justifyContent: "center" }}>
               <Image 
-                src={selectedEvent.imageUrl} 
-                alt={selectedEvent.name} 
+                src={selectedInternship.imageUrl} 
+                alt={selectedInternship.name} 
                 width={800}
                 height={600}
                 unoptimized
@@ -196,27 +195,27 @@ const EventsPage = () => {
             </Box>
             <Box sx={{ p: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ color: "white" }}>
-                Date: {selectedEvent.date}
+                Date: {selectedInternship.date}
               </Typography>
-              <Typography variant="body1">{selectedEvent.description}</Typography>
-              {selectedEvent.status === "canceled" && (
+              <Typography variant="body1">{selectedInternship.description}</Typography>
+              {selectedInternship.status === "canceled" && (
                 <Typography variant="h5" sx={{ color: "red", fontWeight: "bold", mt: 2 }}>
-                  This Event Has Been CANCELED
+                  This Internship Has Been CANCELED
                 </Typography>
               )}
             </Box>
           </DialogContent>
           <DialogActions sx={{ bgcolor: "black" }}>
-            <Button onClick={() => setSelectedEvent(null)} sx={{ color: "white" }}>Close</Button>
-            {selectedEvent.status !== "canceled" && (
+            <Button onClick={() => setSelectedInternship(null)} sx={{ color: "white" }}>Close</Button>
+            {selectedInternship.status !== "canceled" && (
               <Button 
                 variant="contained" 
                 color="primary" 
-                href={selectedEvent.registerLink.startsWith('http') ? selectedEvent.registerLink : `https://${selectedEvent.registerLink}`} 
+                href={selectedInternship.applyLink.startsWith('http') ? selectedInternship.applyLink : `https://${selectedInternship.applyLink}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
               >
-                Register Now
+                Apply Now
               </Button>
             )}
           </DialogActions>
@@ -226,4 +225,4 @@ const EventsPage = () => {
   );
 };
 
-export default EventsPage;
+export default InternshipsPage;

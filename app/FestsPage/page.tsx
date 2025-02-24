@@ -8,7 +8,7 @@ import Image from "next/image";
 import Head from 'next/head';
 import MenuIcon from '@mui/icons-material/Menu'; // Import the hamburger menu icon
 
-interface Event {
+interface Fest {
   id: string;
   name: string;
   imageUrl: string;
@@ -18,20 +18,20 @@ interface Event {
   status?: string;
 }
 
-const EventsPage = () => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+const FestsPage = () => {
+  const [fests, setFests] = useState<Fest[]>([]);
+  const [selectedFest, setSelectedFest] = useState<Fest | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false); // State to manage drawer open/close
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchFests = async () => {
       try {
         const [snapshot1, snapshot2] = await Promise.all([
-          getDocs(collection(db1, 'events')),
-          getDocs(collection(db2, 'events'))
+          getDocs(collection(db1, 'fests')), // Fetch from first database
+          getDocs(collection(db2, 'fests')) // Fetch from second database
         ]);
 
-        const events1 = snapshot1.docs.map(doc => ({
+        const fests1 = snapshot1.docs.map(doc => ({
           id: doc.id,
           name: doc.data().name,
           imageUrl: doc.data().imageUrl,
@@ -41,7 +41,7 @@ const EventsPage = () => {
           status: doc.data().status || "active"
         }));
 
-        const events2 = snapshot2.docs.map(doc => ({
+        const fests2 = snapshot2.docs.map(doc => ({
           id: doc.id,
           name: doc.data().name,
           imageUrl: doc.data().imageUrl,
@@ -51,13 +51,13 @@ const EventsPage = () => {
           status: doc.data().status || "active"
         }));
 
-        setEvents([...events1, ...events2]);
+        setFests([...fests1, ...fests2]);
       } catch (error) {
-        console.error('Error fetching events:', error);
+        console.error('Error fetching fests:', error);
       }
     };
 
-    fetchEvents();
+    fetchFests();
   }, []);
 
   const toggleDrawer = (open: boolean) => () => {
@@ -98,53 +98,52 @@ const EventsPage = () => {
         >
           <List>
             <ListItem button component="a" href="/">
-                          <ListItemText primary="Events" />
-                        </ListItem>
-                        <ListItem button component="a" href="/internships">
-                          <ListItemText primary="Internships" />
-                        </ListItem>
-                        <ListItem button component="a" href="/FestsPage">
-                          <ListItemText primary="Fests" />
-                        </ListItem>
+              <ListItemText primary="Events" />
+            </ListItem>
+            <ListItem button component="a" href="/internships">
+              <ListItemText primary="Internships" />
+            </ListItem>
+            <ListItem button component="a" href="/FestsPage">
+              <ListItemText primary="Fests" />
+            </ListItem>
           </List>
         </Box>
       </Drawer>
 
       <Box sx={{ textAlign: 'center', my: 4 }}>
         <Typography 
-          variant="h4" 
+          variant="h3" 
           sx={{ fontFamily: '"Old Standard TT", serif' }}
         >
-          Events GEC
+          Fests GEC
         </Typography>
       </Box>
 
       <Grid container spacing={3}>
-        {events.map(event => (
-          <Grid item xs={12} sm={6} md={4} key={event.id}>
+        {fests.map(fest => (
+          <Grid item xs={12} sm={6} md={4} key={fest.id}>
             <Card 
-              onClick={() => setSelectedEvent(event)} 
+              onClick={() => setSelectedFest(fest)} 
               sx={{ 
                 cursor: 'pointer', 
                 height: 350, 
                 display: 'flex', 
                 flexDirection: 'column',
-                filter: event.status === "canceled" ? "grayscale(100%)" : "none", 
-                opacity: event.status === "canceled" ? 0.6 : 1,
+                filter: fest.status === "canceled" ? "grayscale(100%)" : "none", 
+                opacity: fest.status === "canceled" ? 0.6 : 1,
                 position: 'relative' // Needed for overlay
               }}
             >
               <CardMedia 
                 component="img" 
                 height="200"
-                image={event.imageUrl} 
-                alt={event.name} 
+                image={fest.imageUrl} 
+                alt={fest.name} 
                 sx={{ objectFit: "cover" }}
               />
-             
 
               {/* CANCELED Overlay */}
-              {event.status === "canceled" && (
+              {fest.status === "canceled" && (
                 <Box 
                   sx={{ 
                     position: 'absolute', 
@@ -177,17 +176,17 @@ const EventsPage = () => {
         ))}
       </Grid>
 
-      {/* Event Details Dialog */}
-      {selectedEvent && (
-        <Dialog open={Boolean(selectedEvent)} onClose={() => setSelectedEvent(null)}>
+      {/* Fest Details Dialog */}
+      {selectedFest && (
+        <Dialog open={Boolean(selectedFest)} onClose={() => setSelectedFest(null)}>
           <DialogTitle sx={{ bgcolor: "black", color: "white" }}>
-            {selectedEvent.name}
+            {selectedFest.name}
           </DialogTitle>
           <DialogContent sx={{ bgcolor: "black", color: "white", p: 0 }}>
             <Box sx={{ display: "flex", justifyContent: "center" }}>
               <Image 
-                src={selectedEvent.imageUrl} 
-                alt={selectedEvent.name} 
+                src={selectedFest.imageUrl} 
+                alt={selectedFest.name} 
                 width={800}
                 height={600}
                 unoptimized
@@ -196,23 +195,23 @@ const EventsPage = () => {
             </Box>
             <Box sx={{ p: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ color: "white" }}>
-                Date: {selectedEvent.date}
+                Date: {selectedFest.date}
               </Typography>
-              <Typography variant="body1">{selectedEvent.description}</Typography>
-              {selectedEvent.status === "canceled" && (
+              <Typography variant="body1">{selectedFest.description}</Typography>
+              {selectedFest.status === "canceled" && (
                 <Typography variant="h5" sx={{ color: "red", fontWeight: "bold", mt: 2 }}>
-                  This Event Has Been CANCELED
+                  This Fest Has Been CANCELED
                 </Typography>
               )}
             </Box>
           </DialogContent>
           <DialogActions sx={{ bgcolor: "black" }}>
-            <Button onClick={() => setSelectedEvent(null)} sx={{ color: "white" }}>Close</Button>
-            {selectedEvent.status !== "canceled" && (
+            <Button onClick={() => setSelectedFest(null)} sx={{ color: "white" }}>Close</Button>
+            {selectedFest.status !== "canceled" && (
               <Button 
                 variant="contained" 
                 color="primary" 
-                href={selectedEvent.registerLink.startsWith('http') ? selectedEvent.registerLink : `https://${selectedEvent.registerLink}`} 
+                href={selectedFest.registerLink.startsWith('http') ? selectedFest.registerLink : `https://${selectedFest.registerLink}`} 
                 target="_blank" 
                 rel="noopener noreferrer"
               >
@@ -226,4 +225,4 @@ const EventsPage = () => {
   );
 };
 
-export default EventsPage;
+export default FestsPage;
