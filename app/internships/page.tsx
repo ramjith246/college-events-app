@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { db1, db2 } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import { Box, Typography, Grid, Button, Container, Card, CardContent, CardMedia, Dialog, DialogTitle, DialogContent, DialogActions, Drawer, List, ListItem, ListItemText, IconButton } from '@mui/material';
+import { Box, Typography, Grid, Button, Container, Card, CardMedia, Dialog, DialogTitle, DialogContent, DialogActions, Drawer, List, ListItem, ListItemText, IconButton } from '@mui/material';
 import Image from "next/image";
 import Head from 'next/head';
 import MenuIcon from '@mui/icons-material/Menu'; // Import the hamburger menu icon
