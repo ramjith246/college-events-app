@@ -115,7 +115,7 @@ const InternshipsPage = () => {
           variant="h3" 
           sx={{ fontFamily: '"Old Standard TT", serif' }}
         >
-          Internships GEC
+          Internships 
         </Typography>
       </Box>
 

@@ -115,7 +115,7 @@ const FestsPage = () => {
           variant="h3" 
           sx={{ fontFamily: '"Old Standard TT", serif' }}
         >
-          Fests GEC
+          External Fests 
         </Typography>
       </Box>
 
