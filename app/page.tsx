@@ -98,10 +98,10 @@ const EventsPage = () => {
 
   // Listen for the beforeinstallprompt event
   useEffect(() => {
-    
+   // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleBeforeInstallPrompt = (event: any) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(event as any).preventDefault();
+     
+
       event.preventDefault(); // Bypass TypeScript checks
       setDeferredPrompt(event);
       setShowInstallButton(true);
