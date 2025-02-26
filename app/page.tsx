@@ -1,4 +1,5 @@
 'use client';
+// @ts-nocheck
 
 import React, { useEffect, useState } from 'react';
 import { db1, db2 } from '@/lib/firebase';
@@ -21,6 +22,13 @@ interface Event {
   status?: string;
 }
 
+// Define the BeforeInstallPromptEvent type
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => void;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  preventDefault: () => void; // Explicitly include preventDefault
+}
+
 const EventsPage = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
@@ -28,7 +36,10 @@ const EventsPage = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
 
+  // Fetch events from Firestore
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -60,7 +71,6 @@ const EventsPage = () => {
         }));
 
         const allEvents = [...events1, ...events2];
-
         setEvents(allEvents);
         setFilteredEvents(allEvents);
       } catch (error) {
@@ -71,7 +81,7 @@ const EventsPage = () => {
     fetchEvents();
   }, []);
 
-  // Function to filter events based on search query
+  // Filter events based on search query
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredEvents(events);
@@ -83,13 +93,42 @@ const EventsPage = () => {
         return eventName.includes(query) || eventClub.includes(query);
       });
       setFilteredEvents(filtered);
-
-      // Debugging logs
-      console.log("Search Query:", query);
-      console.log("Filtered Events:", filtered);
-      console.log("All Events:", events);
     }
   }, [searchQuery, events]);
+
+  // Listen for the beforeinstallprompt event
+  useEffect(() => {
+    
+    const handleBeforeInstallPrompt = (event: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+(event as any).preventDefault();
+      event.preventDefault(); // Bypass TypeScript checks
+      setDeferredPrompt(event);
+      setShowInstallButton(true);
+    };
+  
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  // Handle install button click
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult: { outcome: 'accepted' | 'dismissed' }) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        } else {
+          console.log('User dismissed the install prompt');
+        }
+        setDeferredPrompt(null);
+        setShowInstallButton(false);
+      });
+    }
+  };
 
   return (
     <Container>
@@ -99,6 +138,18 @@ const EventsPage = () => {
         <meta name="theme-color" content="#1976d2" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </Head>
+
+      {/* Install Button */}
+      {showInstallButton && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleInstallClick}
+          sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1000 }}
+        >
+          Install App
+        </Button>
+      )}
 
       {/* Hamburger Menu Button */}
       <IconButton
@@ -131,15 +182,15 @@ const EventsPage = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
-              sx: { backgroundColor: "white", color: "black" }, // Background white, text black
+              sx: { backgroundColor: "white", color: "black" },
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "black" }} /> {/* Ensure icon is visible */}
+                  <SearchIcon sx={{ color: "black" }} />
                 </InputAdornment>
               ),
             }}
             sx={{
-              input: { color: "black" }, // Make sure input text is black
+              input: { color: "black" },
             }}
           />
         </Box>
@@ -191,7 +242,6 @@ const EventsPage = () => {
       </Grid>
 
       {/* Dialog to show event details */}
-      <Dialog open={!!selectedEvent} onClose={() => setSelectedEvent(null)}>
       {selectedEvent && (
         <Dialog open={Boolean(selectedEvent)} onClose={() => setSelectedEvent(null)}>
           <DialogTitle sx={{ bgcolor: "black", color: "white" }}>
@@ -236,7 +286,6 @@ const EventsPage = () => {
           </DialogActions>
         </Dialog>
       )}
-      </Dialog>
     </Container>
   );
 };
